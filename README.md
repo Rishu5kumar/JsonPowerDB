@@ -27,7 +27,7 @@ This project also integrates with **JsonPowerDB**, a fast, real-time database de
   - Added basic form fields: Roll No, Full Name, Class, Birth Date, Address, and Enrollment Date.
   - Integrated JsonPowerDB API for saving and retrieving student data.
   - Provided functionality for saving and updating student records via the form.
-  - Released on: *[Date]*
+  - Released on: *11-12-2024*
 
 ## Scope of Functionalities
 This project is designed to handle the following functionalities:
