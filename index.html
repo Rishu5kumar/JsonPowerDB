@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Student Enrollment Form</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Enrollment Form</h2>
+        <form id="studForm" method="post">
+            <div class="form-group">
+                <label for="studRollNo">Roll No:</label>
+                <input type="text" class="form-control" name="studRollNo" id="studRollNo" placeholder="Enter Roll Number" required>
+            </div>
+            <div class="form-group">
+                <label for="studFullName">Full Name:</label>
+                <input type="text" class="form-control" id="studFullName" placeholder="Enter Full Name" name="studFullName" required>
+            </div>
+            <div class="form-group">
+                <label for="studClass">Class:</label>
+                <input type="text" class="form-control" id="studClass" placeholder="Enter Class" name="studClass" required>
+            </div>
+            <div class="form-group">
+                <label for="studBirthDate">Birth Date:</label>
+                <input type="date" class="form-control" id="studBirthDate" name="studBirthDate" required>
+            </div>
+            <div class="form-group">
+                <label for="studAddress">Address:</label>
+                <textarea class="form-control" id="studAddress" name="studAddress" placeholder="Enter Address" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="studEnrollmentDate">Enrollment Date:</label>
+                <input type="date" class="form-control" id="studEnrollmentDate" name="studEnrollmentDate" required>
+            </div>
+            <input type="button" class="btn btn-primary" id="studSave" value="Save" onclick="saveStudent();">
+            <input type="button" class="btn btn-warning" id="studUpdate" value="Update" onclick="updateStudent();">
+            <input type="button" class="btn btn-default" id="studReset" value="Reset" onclick="resetForm();">
+        </form>
+    </div>
+
+    <script>
+        // Function to validate the form data and return it as JSON
+        function validateAndGetFormData() {
+            var studRollNo = $("#studRollNo").val();
+            if (studRollNo === "") {
+                alert("Roll No is Required");
+                return "";
+            }
+            var studFullName = $("#studFullName").val();
+            if (studFullName === "") {
+                alert("Full Name is Required");
+                return "";
+            }
+            var studClass = $("#studClass").val();
+            if (studClass === "") {
+                alert("Class is Required");
+                return "";
+            }
+            var studBirthDate = $("#studBirthDate").val();
+            if (studBirthDate === "") {
+                alert("Birth Date is Required");
+                return "";
+            }
+            var studAddress = $("#studAddress").val();
+            if (studAddress === "") {
+                alert("Address is Required");
+                return "";
+            }
+            var studEnrollmentDate = $("#studEnrollmentDate").val();
+            if (studEnrollmentDate === "") {
+                alert("Enrollment Date is Required");
+                return "";
+            }
+
+            var jsonStrObj = {
+                rollNo: studRollNo,
+                fullName: studFullName,
+                class: studClass,
+                birthDate: studBirthDate,
+                address: studAddress,
+                enrollmentDate: studEnrollmentDate
+            };
+
+            return JSON.stringify(jsonStrObj);
+        }
+
+        // Function to create the PUT request to send to the server
+        function createPUTRequest(connToken, jsonObj, dbName, relName) {
+            return `{
+                "token" : "${connToken}",
+                "dbName": "${dbName}",
+                "cmd" : "PUT",
+                "rel" : "${relName}",
+                "jsonStr": ${jsonObj}
+            }`;
+        }
+
+        // Function to create the GET request to retrieve student data
+        function createGETRequest(connToken, dbName, relName, rollNo) {
+            return `{
+                "token" : "${connToken}",
+                "dbName": "${dbName}",
+                "cmd" : "GET",
+                "rel" : "${relName}",
+                "rollNo" : "${rollNo}"
+            }`;
+        }
+
+        // Function to execute the command (PUT, GET) via POST
+        function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+            var url = dbBaseUrl + apiEndPointUrl;
+            var jsonObj;
+            $.post(url, reqString, function(result) {
+                jsonObj = JSON.parse(result);
+                return jsonObj;
+            }).fail(function(result) {
+                jsonObj = JSON.parse(result.responseText);
+                return jsonObj;
+            });
+        }
+
+        // Function to reset the form fields
+        function resetForm() {
+            $("#studRollNo").val("");
+            $("#studFullName").val("");
+            $("#studClass").val("");
+            $("#studBirthDate").val("");
+            $("#studAddress").val("");
+            $("#studEnrollmentDate").val("");
+            $("#studRollNo").focus();
+        }
+
+        // Function to save a new student record
+        function saveStudent() {
+            var jsonStr = validateAndGetFormData();
+            if (jsonStr === "") {
+                return;
+            }
+            var putReqStr = createPUTRequest("90934398|-31949227063157035|90957215", jsonStr, "SCHOOL-DB", "STUDENT-TABLE");
+            var resultObj = executeCommand(putReqStr, "http://api.login2explore.com:5577", "/api/iml");
+            resetForm();
+        }
+
+        // Function to update an existing student record
+        function updateStudent() {
+            var rollNo = $("#studRollNo").val();
+            if (rollNo === "") {
+                alert("Please enter the Roll No to update");
+                return;
+            }
+
+            var getReqStr = createGETRequest("90934398|-31949227063157035|90957215", "SCHOOL-DB", "STUDENT-TABLE", rollNo);
+            var existingStudent = executeCommand(getReqStr, "http://api.login2explore.com:5577", "/api/iml");
+
+            if (existingStudent === "" || existingStudent === null) {
+                alert("Student record not found.");
+                return;
+            }
+
+            var jsonStr = validateAndGetFormData();
+            if (jsonStr === "") {
+                return;
+            }
+
+            var putReqStr = createPUTRequest("90934398|-31949227063157035|90957215", jsonStr, "SCHOOL-DB", "STUDENT-TABLE");
+            var resultObj = executeCommand(putReqStr, "http://api.login2explore.com:5577", "/api/iml");
+            resetForm();
+        }
+    </script>
+</body>
+</html>
